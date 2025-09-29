@@ -21,7 +21,7 @@ jobs:
       pull-requests: read
 
     runs-on: arc-runner-large
-    container: ubuntu:latest
+    container: actions-runner:2.328.0
 
     steps:
       - name: Checkout
