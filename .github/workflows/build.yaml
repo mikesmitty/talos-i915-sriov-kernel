@@ -22,6 +22,9 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    env:
+      PLATFORM: linux/amd64
+
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -70,7 +73,7 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build
+      - name: Apply kernel patches and merge configs
         run: |
           which yq || sudo apt-get update && sudo apt-get install -y yq
           KERNEL_MAJOR_MINOR=v$(yq -r '.vars.linux_version' pkgs/Pkgfile |grep -oP '^[0-9]\.[0-9]+(?=\.[0-9])')
@@ -79,15 +82,17 @@ jobs:
           chmod +x merge_config.sh
 
           cp -a patches/* pkgs/kernel/build/patches/
-          make kernel-olddefconfig
+          make -C pkgs kernel-olddefconfig
 
           for cfg_file in config/*.cfg; do
             echo merging "$cfg_file"
             ./merge_config.sh -m pkgs/kernel/build/config-amd64 "$cfg_file"
           done
 
-          cd pkgs
-          make kernel PLATFORM=linux/amd64 USERNAME=${{ github.repository_owner }} TAG=$KERNEL_IMAGE_TAG
+      - name: Build kernel
+        working-directory: pkgs
+        run: |
+          make kernel USERNAME=${{ github.repository_owner }} TAG=$KERNEL_IMAGE_TAG
 
       - name: Login to registry
         uses: docker/login-action@v3
@@ -99,16 +104,14 @@ jobs:
       - name: Push kernel package to registry
         working-directory: pkgs
         run: |
-          make kernel PLATFORM=linux/amd64 USERNAME=${{ github.repository_owner }} TAG=$KERNEL_IMAGE_TAG PUSH=true
+          make kernel USERNAME=${{ github.repository_owner }} TAG=$KERNEL_IMAGE_TAG PUSH=true
 
       - name: Base
         working-directory: talos
         env:
-          IMAGE_REGISTRY: registry.dev.siderolabs.io
-          PLATFORM: linux/amd64,linux/arm64
           PUSH: "true"
         run: |
-          KERNEL_IMAGE="ghcr.io/${{ github.repository_owner }}/talos-kernel:${KERNEL_IMAGE_TAG}"
+          KERNEL_IMAGE="ghcr.io/${{ github.repository_owner }}/kernel:${KERNEL_IMAGE_TAG}"
           make talosctl-linux-amd64 kernel sd-boot sd-stub initramfs installer-base imager talos PKG_KERNEL="$KERNEL_IMAGE"
 
       - name: checkout extensions
