@@ -20,13 +20,13 @@ jobs:
       packages: write
       pull-requests: read
 
-    runs-on: ubuntu-latest
+    runs-on: arc-runner-large
 
     steps:
       - name: Checkout
         uses: actions/checkout@v5
 
-      - name: Get Release
+      - name: Get release
         id: get-release
         run: |
           RELEASE=$(gh release view --json tagName --jq '.tagName' -R siderolabs/talos)
@@ -54,7 +54,7 @@ jobs:
           ref: ${{ steps.get-release.outputs.release-branch }}
           path: pkgs
 
-      - name: unshallow pkgs
+      - name: Unshallow pkgs
         working-directory: pkgs
         run: |
           git fetch --prune --unshallow
@@ -93,7 +93,7 @@ jobs:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
 
-      - name: Push kernel package to registry
+      - name: Build and push kernel package to registry
         working-directory: pkgs
         run: |
           make kernel USERNAME=${{ github.repository_owner }} TAG=$KERNEL_IMAGE_TAG PLATFORM=linux/amd64 PUSH=true
@@ -106,24 +106,24 @@ jobs:
           KERNEL_IMAGE="ghcr.io/${{ github.repository_owner }}/kernel:${KERNEL_IMAGE_TAG}"
           make talosctl-linux-amd64 kernel sd-boot sd-stub initramfs installer-base imager talos PLATFORM=linux/amd64 PKG_KERNEL="$KERNEL_IMAGE"
 
-      - name: checkout extensions
+      - name: Checkout extensions
         uses: actions/checkout@v5
         with:
           path: talos/_out/extensions
           ref: main
           repository: siderolabs/extensions
 
-      - name: unshallow-extensions
+      - name: Unshallow extensions
         working-directory: talos
         run: |
           git -C _out/extensions fetch --prune --unshallow
 
-      - name: set variables
+      - name: Set variables
         working-directory: talos
         run: |
           cat _out/talos-metadata >> "$GITHUB_ENV"
 
-      - name: build extensions
+      - name: Build extensions
         working-directory: talos
         env:
           PLATFORM: linux/amd64
@@ -132,7 +132,7 @@ jobs:
         run: |
           make all extensions-metadata PLATFORM=linux/amd64 -C _out/extensions
 
-      - name: installer extensions
+      - name: Create installer
         working-directory: talos
         env:
           USERNAME: ${{ github.repository_owner }}
