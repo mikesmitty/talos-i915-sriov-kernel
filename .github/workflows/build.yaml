@@ -22,9 +22,6 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    env:
-      PLATFORM: linux/amd64
-
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -89,11 +86,6 @@ jobs:
             ./merge_config.sh -m pkgs/kernel/build/config-amd64 "$cfg_file"
           done
 
-      - name: Build kernel
-        working-directory: pkgs
-        run: |
-          make kernel USERNAME=${{ github.repository_owner }} TAG=$KERNEL_IMAGE_TAG
-
       - name: Login to registry
         uses: docker/login-action@v3
         with:
@@ -104,7 +96,7 @@ jobs:
       - name: Push kernel package to registry
         working-directory: pkgs
         run: |
-          make kernel USERNAME=${{ github.repository_owner }} TAG=$KERNEL_IMAGE_TAG PUSH=true
+          make kernel USERNAME=${{ github.repository_owner }} TAG=$KERNEL_IMAGE_TAG PLATFORM=linux/amd64 PUSH=true
 
       - name: Base
         working-directory: talos
@@ -112,7 +104,7 @@ jobs:
           PUSH: "true"
         run: |
           KERNEL_IMAGE="ghcr.io/${{ github.repository_owner }}/kernel:${KERNEL_IMAGE_TAG}"
-          make talosctl-linux-amd64 kernel sd-boot sd-stub initramfs installer-base imager talos PKG_KERNEL="$KERNEL_IMAGE"
+          make talosctl-linux-amd64 kernel sd-boot sd-stub initramfs installer-base imager talos PLATFORM=linux/amd64 PKG_KERNEL="$KERNEL_IMAGE"
 
       - name: checkout extensions
         uses: actions/checkout@v5
@@ -138,11 +130,11 @@ jobs:
           PUSH: "true"
           USERNAME: ${{ github.repository_owner }}
         run: |
-          make all extensions-metadata -C _out/extensions
+          make all extensions-metadata PLATFORM=linux/amd64 -C _out/extensions
 
       - name: installer extensions
         working-directory: talos
         env:
           USERNAME: ${{ github.repository_owner }}
         run: |
-          make installer-with-extensions
+          make installer-with-extensions PLATFORM=linux/amd64
