@@ -20,8 +20,7 @@ jobs:
       packages: write
       pull-requests: read
 
-    runs-on: arc-runner-large
-    container: ghcr.io/quipper/actions-runner:2.328.0
+    runs-on: self-hosted
 
     defaults:
       run:
