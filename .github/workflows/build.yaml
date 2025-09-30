@@ -112,11 +112,7 @@ jobs:
           make installer-base USERNAME=${{ github.repository_owner }} PLATFORM=linux/amd64 PUSH=true
           make imager USERNAME=${{ github.repository_owner }} PLATFORM=linux/amd64 PUSH=true INSTALLER_ARCH=amd64 PKG_KERNEL="$KERNEL_IMAGE"
           make installer USERNAME=${{ github.repository_owner }} PLATFORM=linux/amd64 PUSH=true
-
-      - name: Make extensions parent dir
-        working-directory: talos
-        run: |
-          mkdir -p _out
+          sudo chown $USER:$USER -R _out
 
       - name: Checkout extensions
         uses: actions/checkout@v5
