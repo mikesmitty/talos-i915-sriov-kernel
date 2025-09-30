@@ -136,11 +136,11 @@ jobs:
       - name: Build extensions
         working-directory: talos
         run: |
-          make all extensions-metadata PLATFORM=linux/amd64 PUSH=true TAG=${{ steps.get-release.outputs.release }} -C _out/extensions
+          make all extensions-metadata USERNAME=${{ github.repository_owner }} PLATFORM=linux/amd64 PUSH=true TAG=${{ steps.get-release.outputs.release }} -C _out/extensions
 
       - name: Create installer
         working-directory: talos
         env:
           USERNAME: ${{ github.repository_owner }}
         run: |
-          make installer-with-extensions PLATFORM=linux/amd64 PUSH=true TAG=${{ steps.get-release.outputs.release }}
+          make installer-with-extensions USERNAME=${{ github.repository_owner }} PLATFORM=linux/amd64 PUSH=true TAG=${{ steps.get-release.outputs.release }}
