@@ -40,7 +40,7 @@ jobs:
           RELEASE_BRANCH="release-$(echo $RELEASE | grep -oP '(?<=v)[0-9]\.[0-9]+')"
           echo "release-branch=$RELEASE_BRANCH" >> $GITHUB_OUTPUT
 
-          KERNEL_IMAGE_TAG="${RELEASE}-$(git rev-parse --short HEAD)"
+          KERNEL_IMAGE_TAG="${RELEASE}-${GITHUB_SHA::8}"
           echo "KERNEL_IMAGE_TAG=$KERNEL_IMAGE_TAG" >> $GITHUB_ENV
         env:
           GH_TOKEN: ${{ github.token }}
@@ -113,11 +113,16 @@ jobs:
           make imager USERNAME=${{ github.repository_owner }} PLATFORM=linux/amd64 PUSH=true INSTALLER_ARCH=amd64 PKG_KERNEL="$KERNEL_IMAGE"
           make installer USERNAME=${{ github.repository_owner }} PLATFORM=linux/amd64 PUSH=true
 
+      - name: Make extensions parent dir
+        working-directory: talos
+        run: |
+          mkdir -p _out
+
       - name: Checkout extensions
         uses: actions/checkout@v5
         with:
           path: talos/_out/extensions
-          ref: main
+          ref: ${{ steps.get-release.outputs.release-branch }}
           repository: siderolabs/extensions
 
       - name: Unshallow extensions
@@ -125,23 +130,21 @@ jobs:
         run: |
           git -C _out/extensions fetch --prune --unshallow
 
-      - name: Set variables
-        working-directory: talos
-        run: |
-          cat _out/talos-metadata >> "$GITHUB_ENV"
+      # TODO: Re-enable when this file is generated properly?
+      # Sets PKGS, TOOLS, and TAG variables
+      # - name: Set variables
+      #   working-directory: talos
+      #   run: |
+      #     cat _out/talos-metadata >> "$GITHUB_ENV"
 
       - name: Build extensions
         working-directory: talos
-        env:
-          PLATFORM: linux/amd64
-          PUSH: "true"
-          USERNAME: ${{ github.repository_owner }}
         run: |
-          make all extensions-metadata PLATFORM=linux/amd64 -C _out/extensions
+          make all extensions-metadata PLATFORM=linux/amd64 PUSH=true TAG=${{ steps.get-release.outputs.release }} -C _out/extensions
 
       - name: Create installer
         working-directory: talos
         env:
           USERNAME: ${{ github.repository_owner }}
         run: |
-          make installer-with-extensions PLATFORM=linux/amd64
+          make installer-with-extensions PLATFORM=linux/amd64 PUSH=true TAG=${{ steps.get-release.outputs.release }}
