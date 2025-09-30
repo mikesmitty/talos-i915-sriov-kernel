@@ -98,18 +98,20 @@ jobs:
             ./merge_config.sh -m pkgs/kernel/build/config-amd64 "$cfg_file"
           done
 
-      - name: Build and push kernel package to registry
+      - name: Build kernel
         working-directory: pkgs
         run: |
           make kernel USERNAME=${{ github.repository_owner }} TAG=$KERNEL_IMAGE_TAG PLATFORM=linux/amd64 PUSH=true
 
-      - name: Base
+      - name: Build installer
         working-directory: talos
         env:
           PUSH: "true"
         run: |
           KERNEL_IMAGE="ghcr.io/${{ github.repository_owner }}/kernel:${KERNEL_IMAGE_TAG}"
-          make talosctl-linux-amd64 kernel sd-boot sd-stub initramfs installer-base imager talos PLATFORM=linux/amd64 PKG_KERNEL="$KERNEL_IMAGE"
+          make installer-base USERNAME=${{ github.repository_owner }} PLATFORM=linux/amd64 PUSH=true
+          make imager USERNAME=${{ github.repository_owner }} INSTALLER_ARCH=linux/amd64 PUSH=true
+          make installer USERNAME=${{ github.repository_owner }} PLATFORM=linux/amd64 PUSH=true
 
       - name: Checkout extensions
         uses: actions/checkout@v5
