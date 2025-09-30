@@ -110,7 +110,7 @@ jobs:
         run: |
           KERNEL_IMAGE="ghcr.io/${{ github.repository_owner }}/kernel:${KERNEL_IMAGE_TAG}"
           make installer-base USERNAME=${{ github.repository_owner }} PLATFORM=linux/amd64 PUSH=true
-          make imager USERNAME=${{ github.repository_owner }} INSTALLER_ARCH=linux/amd64 PUSH=true
+          make imager USERNAME=${{ github.repository_owner }} PLATFORM=linux/amd64 PUSH=true INSTALLER_ARCH=linux/amd64 PKG_KERNEL="$KERNEL_IMAGE"
           make installer USERNAME=${{ github.repository_owner }} PLATFORM=linux/amd64 PUSH=true
 
       - name: Checkout extensions
