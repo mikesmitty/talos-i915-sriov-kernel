@@ -23,6 +23,10 @@ jobs:
     runs-on: arc-runner-large
     container: ghcr.io/quipper/actions-runner:2.328.0
 
+    defaults:
+      run:
+        shell: bash
+
     steps:
       - name: Checkout
         uses: actions/checkout@v5
