@@ -3,12 +3,18 @@ concurrency:
   cancel-in-progress: true
 
 on:
-  schedule:
-    - cron: 0 2 * * *
+  # schedule:
+  #   - cron: 0 2 * * *
   push:
     branches:
       - main
   workflow_dispatch:
+    inputs:
+      version:
+        description: "Talos version to build against (e.g. v1.11.0). If empty, uses latest release."
+        type: string
+        required: false
+        default: ""
 
 name: default
 jobs:
@@ -35,6 +41,9 @@ jobs:
         run: |
           which gh || sudo apt-get update && sudo apt-get install -y gh
           RELEASE=$(gh release view --json tagName --jq '.tagName' -R siderolabs/talos)
+          if [ -n "${{ inputs.version }}" ]; then
+            RELEASE="${{ inputs.version }}"
+          fi
           echo "release=$RELEASE" >> $GITHUB_OUTPUT
 
           RELEASE_BRANCH="release-$(echo $RELEASE | grep -oP '(?<=v)[0-9]\.[0-9]+')"
@@ -105,16 +114,24 @@ jobs:
         run: |
           make kernel USERNAME=${{ github.repository_owner }} TAG=$KERNEL_IMAGE_TAG PLATFORM=linux/amd64 PUSH=true
 
+          KERNEL_IMAGE="ghcr.io/${{ github.repository_owner }}/kernel:${KERNEL_IMAGE_TAG}"
+          echo "KERNEL_IMAGE=$KERNEL_IMAGE" >> $GITHUB_ENV
+
+      - name: Build installer-base
+        working-directory: talos
+        run: |
+          make installer-base USERNAME=${{ github.repository_owner }} PLATFORM=linux/amd64 PUSH=true PKG_KERNEL="$KERNEL_IMAGE"
+
+      - name: Build imager
+        working-directory: talos
+        run: |
+          make imager USERNAME=${{ github.repository_owner }} PLATFORM=linux/amd64 PUSH=true PKG_KERNEL="$KERNEL_IMAGE" INSTALLER_ARCH=amd64
+
       - name: Build installer
         working-directory: talos
-        env:
-          PUSH: "true"
         run: |
-          KERNEL_IMAGE="ghcr.io/${{ github.repository_owner }}/kernel:${KERNEL_IMAGE_TAG}"
-          make installer-base USERNAME=${{ github.repository_owner }} PLATFORM=linux/amd64 PUSH=true
-          make imager USERNAME=${{ github.repository_owner }} PLATFORM=linux/amd64 PUSH=true INSTALLER_ARCH=amd64 PKG_KERNEL="$KERNEL_IMAGE"
-          make installer USERNAME=${{ github.repository_owner }} PLATFORM=linux/amd64 PUSH=true
-          sudo chown $USER:$USER -R _out
+          make installer USERNAME=${{ github.repository_owner }} PLATFORM=linux/amd64 PUSH=true PKG_KERNEL="$KERNEL_IMAGE"
+          sudo chown -R $USER:$USER _out
 
       - name: Checkout extensions
         uses: actions/checkout@v5
@@ -138,7 +155,13 @@ jobs:
       - name: Build extensions
         working-directory: talos
         run: |
-          make all extensions-metadata USERNAME=${{ github.repository_owner }} PLATFORM=linux/amd64 PUSH=true TAG=${{ steps.get-release.outputs.release }} -C _out/extensions
+          make all USERNAME=${{ github.repository_owner }} PLATFORM=linux/amd64 PUSH=true TAG=${{ steps.get-release.outputs.release }} -C _out/extensions
+          sudo chown -R $USER:$USER _out
+
+      - name: Build extensions image
+        working-directory: talos
+        run: |
+          make extensions USERNAME=${{ github.repository_owner }} PLATFORM=linux/amd64 PUSH=true TAG=${{ steps.get-release.outputs.release }} -C _out/extensions
 
       - name: Create installer
         working-directory: talos
