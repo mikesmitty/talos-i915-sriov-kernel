@@ -20,7 +20,7 @@ jobs:
       packages: write
       pull-requests: read
 
-    runs-on: large-runner
+    runs-on: runner-large
 
     defaults:
       run:
