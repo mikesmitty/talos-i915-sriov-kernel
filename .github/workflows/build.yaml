@@ -94,6 +94,9 @@ jobs:
       - name: Set up yq
         uses: frenck/action-setup-yq@v1
 
+      - name: Set up crane
+        uses: imjasonh/setup-crane@v0.4
+
       - name: Apply kernel patches and merge configs
         run: |
           KERNEL_MAJOR_MINOR=v$(yq -r '.vars.linux_version' pkgs/Pkgfile |grep -oP '^[0-9]\.[0-9]+(?=\.[0-9])')
@@ -122,7 +125,7 @@ jobs:
         run: |
           mkdir -p _out
 
-          COMMON_ARGS="USERNAME=${{ github.repository_owner }} PLATFORM=linux/amd64 PKGS_PREFIX=ghcr.io/${{ github.repository_owner }} PKG_KERNEL=$KERNEL_IMAGE PUSH=true"
+          COMMON_ARGS="USERNAME=${{ github.repository_owner }} PLATFORM=linux/amd64 PKG_KERNEL=$KERNEL_IMAGE PUSH=true"
           echo "COMMON_ARGS=\"$COMMON_ARGS\"" >> $GITHUB_ENV
 
           make installer-base $COMMON_ARGS
@@ -132,13 +135,14 @@ jobs:
         run: |
           make imager INSTALLER_ARCH=amd64 $COMMON_ARGS
 
-      - name: Build installer
-        working-directory: talos
-        run: |
-          make installer $COMMON_ARGS
-
-          # _out and its contents gets created/chowned as root inside the container
-          sudo chown -R $USER:$USER _out
+      # TODO: Cleanup? Is this a dupe of the installer-with-extensions target?
+      # - name: Build installer
+      #   working-directory: talos
+      #   run: |
+      #     make installer $COMMON_ARGS
+      #
+      #     # _out and its contents gets created/chowned as root inside the container
+      #     sudo chown -R $USER:$USER _out
 
       - name: Checkout extensions
         uses: actions/checkout@v5
