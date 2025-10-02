@@ -125,21 +125,26 @@ jobs:
         run: |
           mkdir -p _out
 
-          COMMON_ARGS="USERNAME=${{ github.repository_owner }} PLATFORM=linux/amd64 PKG_KERNEL=$KERNEL_IMAGE PUSH=true"
-          echo "COMMON_ARGS=\"$COMMON_ARGS\"" >> $GITHUB_ENV
-
-          make installer-base $COMMON_ARGS
+          make installer-base \
+            USERNAME=${{ github.repository_owner }} \
+            PLATFORM=linux/amd64 \
+            PKG_KERNEL=$KERNEL_IMAGE \
+            PUSH=true
 
       - name: Build imager
         working-directory: talos
         run: |
-          make imager INSTALLER_ARCH=amd64 $COMMON_ARGS
+          make imager INSTALLER_ARCH=amd64 \
+            USERNAME=${{ github.repository_owner }} \
+            PLATFORM=linux/amd64 \
+            PKG_KERNEL=$KERNEL_IMAGE \
+            PUSH=true
 
       # TODO: Cleanup? Is this a dupe of the installer-with-extensions target?
       # - name: Build installer
       #   working-directory: talos
       #   run: |
-      #     make installer $COMMON_ARGS
+      #     make installer USERNAME=${{ github.repository_owner }} PLATFORM=linux/amd64 PKG_KERNEL=$KERNEL_IMAGE PUSH=true
       #
       #     # _out and its contents gets created/chowned as root inside the container
       #     sudo chown -R $USER:$USER _out
@@ -166,19 +171,28 @@ jobs:
       - name: Build extensions
         working-directory: talos
         run: |
-          EXT_COMMON_ARGS="USERNAME=${{ github.repository_owner }} PLATFORM=linux/amd64 PKGS_PREFIX=ghcr.io/${{ github.repository_owner }} PUSH=true TAG=${{ steps.get-release.outputs.release }}"
-          echo "EXT_COMMON_ARGS=\"$EXT_COMMON_ARGS\"" >> $GITHUB_ENV
-
-          make all $EXT_COMMON_ARGS -C _out/extensions
+          make all -C _out/extensions \
+            USERNAME=${{ github.repository_owner }} \
+            PLATFORM=linux/amd64 \
+            PUSH=true \
+            TAG=${{ steps.get-release.outputs.release }}
 
       - name: Build extensions image
         working-directory: talos
         run: |
-          make extensions $EXT_COMMON_ARGS -C _out/extensions
+          make extensions -C _out/extensions \
+            USERNAME=${{ github.repository_owner }} \
+            PLATFORM=linux/amd64 \
+            PUSH=true \
+            TAG=${{ steps.get-release.outputs.release }}
 
       - name: Create installer
         working-directory: talos
         env:
           USERNAME: ${{ github.repository_owner }}
         run: |
-          make installer-with-extensions $EXT_COMMON_ARGS
+          make installer-with-extensions \
+            USERNAME=${{ github.repository_owner }} \
+            PLATFORM=linux/amd64 \
+            PUSH=true \
+            TAG=${{ steps.get-release.outputs.release }}
