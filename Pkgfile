@@ -1,0 +1,6 @@
+# syntax = ghcr.io/siderolabs/bldr:v0.5.4
+
+format: v1alpha2
+
+labels:
+  org.opencontainers.image.source: https://github.com/mikesmitty/talos-i915-sriov-kernel

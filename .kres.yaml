@@ -1,0 +1,26 @@
+---
+kind: pkgfile.Build
+spec:
+  targets:
+    - kernel
+  extraBuildArgs:
+    - TAG
+    - PKGS_PREFIX
+    - PKGS
+    - TOOLS_PREFIX
+    - TOOLS
+  makefile:
+    extraVariables:
+      - name: PKGS_PREFIX
+        defaultValue: ghcr.io/mikesmitty
+      - name: PKGS
+        defaultValue: v1.11.0
+      - name: TOOLS_PREFIX
+        defaultValue: ghcr.io/siderolabs
+      - name: TOOLS
+        defaultValue: v1.11.0
+---
+kind: common.Build
+spec:
+  ignoredPaths:
+    - go.work.sum

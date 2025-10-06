@@ -1,0 +1,11 @@
+# commit to be tagged for the new release
+commit = "HEAD"
+
+project_name = "talos-i915-sriov-kernel"
+github_repo = "mikesmitty/talos-i915-sriov-kernel"
+match_deps = "^github.com/(mikesmitty/[a-zA-Z0-9-]+)$"
+
+# previous = -
+# pre_release = true
+
+# [notes]

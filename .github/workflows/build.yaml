@@ -68,23 +68,6 @@ jobs:
           ref: ${{ steps.get-release.outputs.release }}
           path: talos
 
-      - name: Checkout pkgs
-        uses: actions/checkout@v5
-        with:
-          repository: siderolabs/pkgs
-          ref: ${{ steps.get-release.outputs.release-branch }}
-          path: pkgs
-
-      - name: Unshallow pkgs
-        working-directory: pkgs
-        run: |
-          git fetch --prune --unshallow
-
-      - name: Get pkgs Commit
-        run: |
-          SHORT_HASH=$(sed -r 's/v[0-9]\.[0-9]+\.[0-9]+-[0-9]+-g([a-f0-9]{6})/\1/' talos/pkg/machinery/gendata/data/pkgs)
-          git -C pkgs checkout $SHORT_HASH
-
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
@@ -97,23 +80,7 @@ jobs:
       - name: Set up crane
         uses: imjasonh/setup-crane@v0.4
 
-      - name: Apply kernel patches and merge configs
-        run: |
-          KERNEL_MAJOR_MINOR=v$(yq -r '.vars.linux_version' pkgs/Pkgfile |grep -oP '^[0-9]\.[0-9]+(?=\.[0-9])')
-
-          curl -Lo merge_config.sh "https://raw.githubusercontent.com/torvalds/linux/refs/tags/${KERNEL_MAJOR_MINOR}/scripts/kconfig/merge_config.sh"
-          chmod +x merge_config.sh
-
-          cp -a patches/* pkgs/kernel/build/patches/
-          make -C pkgs kernel-olddefconfig
-
-          for cfg_file in config/*.cfg; do
-            echo merging "$cfg_file"
-            ./merge_config.sh -m pkgs/kernel/build/config-amd64 "$cfg_file"
-          done
-
       - name: Build kernel
-        working-directory: pkgs
         run: |
           make kernel USERNAME=${{ github.repository_owner }} TAG=$KERNEL_IMAGE_TAG PLATFORM=linux/amd64 PUSH=true
 
@@ -140,12 +107,15 @@ jobs:
             PKG_KERNEL=$KERNEL_IMAGE \
             PUSH=true
 
-      # TODO: Cleanup? Is this a dupe of the installer-with-extensions target?
       # - name: Build installer
       #   working-directory: talos
       #   run: |
-      #     make installer USERNAME=${{ github.repository_owner }} PLATFORM=linux/amd64 PKG_KERNEL=$KERNEL_IMAGE PUSH=true
-      #
+      #     make installer \
+      #       USERNAME=${{ github.repository_owner }} \
+      #       PLATFORM=linux/amd64 \
+      #       PKG_KERNEL=$KERNEL_IMAGE \
+      #       PUSH=true
+
       #     # _out and its contents gets created/chowned as root inside the container
       #     sudo chown -R $USER:$USER _out
 
@@ -186,13 +156,20 @@ jobs:
             PUSH=true \
             TAG=${{ steps.get-release.outputs.release }}
 
-      - name: Create installer
+      - name: Build image-installer
         working-directory: talos
         env:
           USERNAME: ${{ github.repository_owner }}
         run: |
-          make installer-with-extensions \
+          BASE_INSTALLER_IMAGE="ghcr.io/${{ github.repository_owner }}/installer-base:${{ steps.get-release.outputs.release }}"
+          I915_IMAGE="ghcr.io/${{ github.repository_owner }}/i915:20250917-v1.11.2" # FIXME: Pull from extensions image
+          QEMU_IMAGE="ghcr.io/${{ github.repository_owner }}/qemu-guest-agent:10.0.2" # FIXME: Pull from extensions image
+
+          make image-installer \
             USERNAME=${{ github.repository_owner }} \
             PLATFORM=linux/amd64 \
             PUSH=true \
-            TAG=${{ steps.get-release.outputs.release }}
+            TAG=${{ steps.get-release.outputs.release }} \
+            IMAGER_ARGS="--base-installer-image=${BASE_INSTALLER_IMAGE} \
+              --system-extension-image=${I915_IMAGE} \
+              --system-extension-image=${QEMU_IMAGE}"

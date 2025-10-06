@@ -1,0 +1,30 @@
+name: kernel-prepare-i915
+variant: scratch
+shell: /bin/bash
+dependencies:
+  - stage: base
+steps:
+  - sources:
+      - url: https://github.com/intel/linux-intel-lts/archive/refs/tags/lts-v{{ .linux_version }}.tar.gz
+        destination: linux.tar.gz
+        sha256: "{{ .linux_sha256 }}"
+        sha512: "{{ .linux_sha512 }}"
+      - url: https://github.com/a13xp0p0v/kernel-hardening-checker/archive/{{ .kspp_ref }}.tar.gz
+        destination: kspp.tar.gz
+        sha256: "{{ .kspp_sha256 }}"
+        sha512: "{{ .kspp_sha512 }}"
+    env:
+      ARCH: {{ if eq .ARCH "aarch64"}}arm64{{ else if eq .ARCH "x86_64" }}x86_64{{ else }}unsupported{{ end }}
+    prepare:
+      - |
+        mkdir -p /src
+        tar -xzf linux.tar.gz --strip-components=1 -C /src
+
+        cd /src
+        make mrproper
+      - |
+        mkdir -p /toolchain/kernel-hardening-checker
+        tar -xzf kspp.tar.gz --strip-components=1 -C /toolchain/kernel-hardening-checker
+finalize:
+  - from: /
+    to: /
