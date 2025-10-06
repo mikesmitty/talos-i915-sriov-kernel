@@ -2,5 +2,16 @@
 
 format: v1alpha2
 
+vars:
+  # renovate: datasource=github-tags extractVersion=^lts-v(?<version>.*-linux-[0-9T]+Z)$ depName=intel/linux-intel-lts
+  linux_version: 6.12.48-linux-250924T142248Z
+  linux_sha256: ddf66534d4643058eb7bd910dea70c603d50323ac54781a275d6691e0d4c1cb5
+  linux_sha512: 0e446a4d61ea0f48e647badb9ad572646e6df7f715020948e3341d8a9b8abf2e417808f23678b11f69ac185f9516537004ff94d84b39d6157201a7d24989a66a
+
+  # renovate: datasource=git-refs versioning=git depName=https://github.com/a13xp0p0v/kernel-hardening-checker.git
+  kspp_ref: aa94036c6a86f1d0f76624cf6047264af5b2f525
+  kspp_sha256: 0f731380ede2aaf70da5e4ba6be7f55c3442d25e94caa9e7a8666a04b306ff15
+  kspp_sha512: ef115e8b41526b4a248dab97daaeec85561525e4abf046799154242dcb2ebe6b37203fe0491e01b301f1948faa5b102f85c732ee503e0b999e7d4d162998fc70
+
 labels:
   org.opencontainers.image.source: https://github.com/mikesmitty/talos-i915-sriov-kernel
