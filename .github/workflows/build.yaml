@@ -142,6 +142,8 @@ jobs:
         working-directory: talos
         run: |
           make all -C _out/extensions \
+            PKGS_PREFIX=ghcr.io/${{ github.repository_owner }} \
+            PKGS=${KERNEL_IMAGE_TAG} \
             USERNAME=${{ github.repository_owner }} \
             PLATFORM=linux/amd64 \
             PUSH=true \
@@ -151,25 +153,27 @@ jobs:
         working-directory: talos
         run: |
           make extensions -C _out/extensions \
+            PKGS_PREFIX=ghcr.io/${{ github.repository_owner }} \
+            PKGS=${KERNEL_IMAGE_TAG} \
             USERNAME=${{ github.repository_owner }} \
             PLATFORM=linux/amd64 \
             PUSH=true \
             TAG=${{ steps.get-release.outputs.release }}
 
-      - name: Build image-installer
-        working-directory: talos
-        env:
-          USERNAME: ${{ github.repository_owner }}
-        run: |
-          BASE_INSTALLER_IMAGE="ghcr.io/${{ github.repository_owner }}/installer-base:${{ steps.get-release.outputs.release }}"
-          I915_IMAGE="ghcr.io/${{ github.repository_owner }}/i915:20250917-v1.11.2" # FIXME: Pull from extensions image
-          QEMU_IMAGE="ghcr.io/${{ github.repository_owner }}/qemu-guest-agent:10.0.2" # FIXME: Pull from extensions image
+      # - name: Build image-installer
+      #   working-directory: talos
+      #   env:
+      #     USERNAME: ${{ github.repository_owner }}
+      #   run: |
+      #     BASE_INSTALLER_IMAGE="ghcr.io/${{ github.repository_owner }}/installer-base:${{ steps.get-release.outputs.release }}"
+      #     I915_IMAGE="ghcr.io/${{ github.repository_owner }}/i915:20250917-v1.11.2" # FIXME: Pull from extensions image
+      #     QEMU_IMAGE="ghcr.io/${{ github.repository_owner }}/qemu-guest-agent:10.0.2" # FIXME: Pull from extensions image
 
-          make image-installer \
-            USERNAME=${{ github.repository_owner }} \
-            PLATFORM=linux/amd64 \
-            PUSH=true \
-            TAG=${{ steps.get-release.outputs.release }} \
-            IMAGER_ARGS="--base-installer-image=${BASE_INSTALLER_IMAGE} \
-              --system-extension-image=${I915_IMAGE} \
-              --system-extension-image=${QEMU_IMAGE}"
+      #     make image-installer \
+      #       USERNAME=${{ github.repository_owner }} \
+      #       PLATFORM=linux/amd64 \
+      #       PUSH=true \
+      #       TAG=${{ steps.get-release.outputs.release }} \
+      #       IMAGER_ARGS="--base-installer-image=${BASE_INSTALLER_IMAGE} \
+      #         --system-extension-image=${I915_IMAGE} \
+      #         --system-extension-image=${QEMU_IMAGE}"
