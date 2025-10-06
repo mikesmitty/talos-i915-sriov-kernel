@@ -3,7 +3,7 @@ variant: scratch
 shell: /bin/bash
 dependencies:
   - stage: base
-  - stage: kernel-build-i915
+  - stage: kernel-build
 steps:
   - env:
       ARCH: {{ if eq .ARCH "aarch64"}}arm64{{ else if eq .ARCH "x86_64" }}x86_64{{ else }}unsupported{{ end }}

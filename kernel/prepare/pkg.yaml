@@ -1,4 +1,4 @@
-name: kernel-prepare-i915
+name: kernel-prepare
 variant: scratch
 shell: /bin/bash
 dependencies:

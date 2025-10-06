@@ -1,8 +1,8 @@
-name: kernel-build-i915
+name: kernel-build
 variant: scratch
 shell: /bin/bash
 dependencies:
-  - stage: kernel-prepare-i915
+  - stage: kernel-prepare
 steps:
   - env:
       CARCH: {{ if eq .ARCH "aarch64"}}arm64{{ else if eq .ARCH "x86_64" }}amd64{{ else }}unsupported{{ end }}
