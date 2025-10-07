@@ -10,6 +10,11 @@ on:
       - main
   workflow_dispatch:
     inputs:
+      extensions:
+        description: "Space-separated list of extensions to build (e.g. 'i915 qemu-guest-agent')."
+        type: string
+        required: false
+        default: "i915 qemu-guest-agent"
       version:
         description: "Talos version to build against (e.g. v1.11.0). If empty, uses latest release."
         type: string
@@ -87,6 +92,32 @@ jobs:
           ref: ${{ steps.get-release.outputs.release }}
           path: talos
 
+      - name: Checkout pkgs
+        uses: actions/checkout@v5
+        with:
+          repository: siderolabs/pkgs
+          ref: ${{ steps.get-release.outputs.release-branch }}
+          path: pkgs
+
+      - name: Unshallow pkgs
+        working-directory: pkgs
+        run: |
+          git fetch --prune --unshallow
+
+      - name: Get pkgs Commit
+        run: |
+          SHORT_HASH=$(sed -r 's/v[0-9]\.[0-9]+\.[0-9]+-[0-9]+-g([a-f0-9]{6})/\1/' talos/pkg/machinery/gendata/data/pkgs)
+          git -C pkgs checkout $SHORT_HASH
+
+      - name: Build pkgs
+        working-directory: pkgs
+        run: |
+          make linux-firmware \
+            USERNAME=${{ github.repository_owner }} \
+            TAG=$KERNEL_IMAGE_TAG \
+            PLATFORM=linux/amd64 \
+            PUSH=true
+
       - name: Build installer-base
         working-directory: talos
         run: |
@@ -141,7 +172,7 @@ jobs:
       - name: Build extensions
         working-directory: talos
         run: |
-          make all -C _out/extensions \
+          make ${{ inputs.extensions }} -C _out/extensions \
             PKGS_PREFIX=ghcr.io/${{ github.repository_owner }} \
             PKGS=${KERNEL_IMAGE_TAG} \
             USERNAME=${{ github.repository_owner }} \
