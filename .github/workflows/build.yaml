@@ -10,11 +10,6 @@ on:
       - main
   workflow_dispatch:
     inputs:
-      extensions:
-        description: "Space-separated list of extensions to build (e.g. 'i915 qemu-guest-agent')."
-        type: string
-        required: false
-        default: "i915 qemu-guest-agent"
       version:
         description: "Talos version to build against (e.g. v1.11.0). If empty, uses latest release."
         type: string
@@ -172,7 +167,7 @@ jobs:
       - name: Build extensions
         working-directory: talos
         run: |
-          make ${{ inputs.extensions }} -C _out/extensions \
+          make i915 qemu-guest-agent -C _out/extensions \
             PKGS_PREFIX=ghcr.io/${{ github.repository_owner }} \
             PKGS=${KERNEL_IMAGE_TAG} \
             USERNAME=${{ github.repository_owner }} \
