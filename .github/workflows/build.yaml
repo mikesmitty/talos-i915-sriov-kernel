@@ -156,16 +156,16 @@ jobs:
             PUSH=true \
             TAG=${{ steps.get-release.outputs.release }}
 
-      - name: Build extensions image
-        working-directory: talos
-        run: |
-          make extensions -C _out/extensions \
-            PKGS_PREFIX=ghcr.io/${{ github.repository_owner }} \
-            PKGS=${KERNEL_IMAGE_TAG} \
-            USERNAME=${{ github.repository_owner }} \
-            PLATFORM=linux/amd64 \
-            PUSH=true \
-            TAG=${{ steps.get-release.outputs.release }}
+      # - name: Build extensions image
+      #   working-directory: talos
+      #   run: |
+      #     make extensions -C _out/extensions \
+      #       PKGS_PREFIX=ghcr.io/${{ github.repository_owner }} \
+      #       PKGS=${KERNEL_IMAGE_TAG} \
+      #       USERNAME=${{ github.repository_owner }} \
+      #       PLATFORM=linux/amd64 \
+      #       PUSH=true \
+      #       TAG=${{ steps.get-release.outputs.release }}
 
       - name: Build installer
         working-directory: talos
@@ -175,12 +175,16 @@ jobs:
           BASE_INSTALLER_IMAGE="ghcr.io/${{ github.repository_owner }}/installer-base:${{ steps.get-release.outputs.release }}"
           EXTENSIONS_IMAGE_REF="ghcr.io/${{ github.repository_owner }}/extensions:${{ steps.get-release.outputs.release }}"
 
-          EXTENSIONS_FILTER="grep -E 'i915|qemu-guest-agent'"
-
           IMAGER_ARGS="--base-installer-image=${BASE_INSTALLER_IMAGE} --extra-kernel-arg='i915.force_probe=*'"
-          for image in $(crane export $EXTENSIONS_IMAGE_REF | tar x --to-stdout image-digests | $EXTENSIONS_FILTER) ${EXTENSIONS_IMAGE_REF}@$(crane digest $EXTENSIONS_IMAGE_REF); do
-            IMAGER_ARGS="${IMAGER_ARGS} --system-extension-image=$image"
-          done
+
+          # EXTENSIONS_FILTER="grep -E 'i915|qemu-guest-agent'"
+          # for image in $(crane export $EXTENSIONS_IMAGE_REF | tar x --to-stdout image-digests | $EXTENSIONS_FILTER) ${EXTENSIONS_IMAGE_REF}@$(crane digest $EXTENSIONS_IMAGE_REF); do
+          #   IMAGER_ARGS="${IMAGER_ARGS} --system-extension-image=$image"
+          # done
+
+          # FIXME: Temporarily hardcoding the extensions because the extensions container isn't being created properly
+          IMAGER_ARGS="${IMAGER_ARGS} --system-extension-image=ghcr.io/${{ github.repository_owner }}/i915:20250917-v1.11.2"
+          IMAGER_ARGS="${IMAGER_ARGS} --system-extension-image=ghcr.io/${{ github.repository_owner }}/qemu-guest-agent:10.0.2"
 
           make installer \
             USERNAME=${{ github.repository_owner }} \
