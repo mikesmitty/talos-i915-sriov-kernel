@@ -1,0 +1,2 @@
+# renovate: datasource=github-releases versioning=semver depName=siderolabs/talos
+talos-version: v1.11.2

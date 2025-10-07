@@ -3,11 +3,11 @@ concurrency:
   cancel-in-progress: true
 
 on:
-  # schedule:
-  #   - cron: 0 2 * * *
   push:
     branches:
       - main
+    paths:
+      - talos-version.yaml
   workflow_dispatch:
     inputs:
       version:
@@ -36,11 +36,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
+      - name: Set up yq
+        uses: frenck/action-setup-yq@v1
+
       - name: Get release
         id: get-release
         run: |
           which gh || sudo apt-get update && sudo apt-get install -y gh
-          RELEASE=$(gh release view --json tagName --jq '.tagName' -R siderolabs/talos)
+          RELEASE=$(yq '.talos-version' talos-version.yaml)
           if [ -n "${{ inputs.version }}" ]; then
             RELEASE="${{ inputs.version }}"
           fi
@@ -66,9 +69,6 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-
-      - name: Set up yq
-        uses: frenck/action-setup-yq@v1
 
       - name: Set up crane
         uses: imjasonh/setup-crane@v0.4
@@ -133,18 +133,6 @@ jobs:
             PKG_KERNEL=$KERNEL_IMAGE \
             PUSH=true
 
-      # - name: Build installer
-      #   working-directory: talos
-      #   run: |
-      #     make installer \
-      #       USERNAME=${{ github.repository_owner }} \
-      #       PLATFORM=linux/amd64 \
-      #       PKG_KERNEL=$KERNEL_IMAGE \
-      #       PUSH=true
-
-      #     # _out and its contents gets created/chowned as root inside the container
-      #     sudo chown -R $USER:$USER _out
-
       - name: Checkout extensions
         uses: actions/checkout@v5
         with:
@@ -156,13 +144,6 @@ jobs:
         working-directory: talos
         run: |
           git -C _out/extensions fetch --prune --unshallow
-
-      # TODO: Re-enable when this file is generated properly?
-      # Sets PKGS, TOOLS, and TAG variables
-      # - name: Set variables
-      #   working-directory: talos
-      #   run: |
-      #     cat _out/talos-metadata >> "$GITHUB_ENV"
 
       - name: Build extensions
         working-directory: talos
@@ -186,20 +167,24 @@ jobs:
             PUSH=true \
             TAG=${{ steps.get-release.outputs.release }}
 
-      # - name: Build image-installer
-      #   working-directory: talos
-      #   env:
-      #     USERNAME: ${{ github.repository_owner }}
-      #   run: |
-      #     BASE_INSTALLER_IMAGE="ghcr.io/${{ github.repository_owner }}/installer-base:${{ steps.get-release.outputs.release }}"
-      #     I915_IMAGE="ghcr.io/${{ github.repository_owner }}/i915:20250917-v1.11.2" # FIXME: Pull from extensions image
-      #     QEMU_IMAGE="ghcr.io/${{ github.repository_owner }}/qemu-guest-agent:10.0.2" # FIXME: Pull from extensions image
+      - name: Build installer
+        working-directory: talos
+        env:
+          USERNAME: ${{ github.repository_owner }}
+        run: |
+          BASE_INSTALLER_IMAGE="ghcr.io/${{ github.repository_owner }}/installer-base:${{ steps.get-release.outputs.release }}"
+          EXTENSIONS_IMAGE_REF="ghcr.io/${{ github.repository_owner }}/extensions:${{ steps.get-release.outputs.release }}"
 
-      #     make image-installer \
-      #       USERNAME=${{ github.repository_owner }} \
-      #       PLATFORM=linux/amd64 \
-      #       PUSH=true \
-      #       TAG=${{ steps.get-release.outputs.release }} \
-      #       IMAGER_ARGS="--base-installer-image=${BASE_INSTALLER_IMAGE} \
-      #         --system-extension-image=${I915_IMAGE} \
-      #         --system-extension-image=${QEMU_IMAGE}"
+          EXTENSIONS_FILTER="grep -E 'i915|qemu-guest-agent'"
+
+          IMAGER_ARGS="--base-installer-image=${BASE_INSTALLER_IMAGE} --extra-kernel-arg='i915.force_probe=*'"
+          for image in $(crane export $EXTENSIONS_IMAGE_REF | tar x --to-stdout image-digests | $EXTENSIONS_FILTER) ${EXTENSIONS_IMAGE_REF}@$(crane digest $EXTENSIONS_IMAGE_REF); do
+            IMAGER_ARGS="${IMAGER_ARGS} --system-extension-image=$image"
+          done
+
+          make installer \
+            USERNAME=${{ github.repository_owner }} \
+            PLATFORM=linux/amd64 \
+            PUSH=true \
+            TAG=${{ steps.get-release.outputs.release }} \
+            IMAGER_ARGS="${IMAGER_ARGS}"
