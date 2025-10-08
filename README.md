@@ -5,19 +5,21 @@ Talos installer and build artifacts with the [intel/linux-intel-lts](https://git
 This is not stable software, you will very possibly encounter bugs and I offer no guarantees of any kind. Intel has a note on the kernel repo stating that "this should only be used for Intel platform feature evaluation and not for production." You may get lucky and not run into any issues, but be prepared to back out just in case. 
 
 # Known Issues
-- QuickSync HEVC->H.264 video corruption on Arrow Lake-H (investigating)
+- Plex video corruption when transcoding 10-bit HEVC to H.264, resolved by switching on `Enable HEVC video Encoding (experimental)` in Plex
 
 # Installation
-- Use this installer image (`ghcr.io/mikesmitty/installer`) like so:
+
+## Install image
+Use this installer image (`ghcr.io/mikesmitty/installer`) like so:
 ```
 talosctl upgrade --image ghcr.io/mikesmitty/test-i915-installer:$TALOS_VERSION -n $YOUR_NODE
 ```
 
-## Alternate boot options
-If the installer image isn't your cup of tea you can also use the `ghcr.io/mikesmitty/imager` image to generate other types of install media (e.g. kernel, initramfs for PXE) with these docs: https://www.talos.dev/v1.11/talos-guides/install/boot-assets/#imager
+## Alternate install media
+Alternative install media (e.g. kernel, initramfs for PXE) can be generated using the `ghcr.io/mikesmitty/imager` along with the Talos boot asset docs: https://www.talos.dev/v1.11/talos-guides/install/boot-assets/#imager
 
 ## System Extensions
-This kernel is compiled only with the i915 and qemu-guest-agent system extensions because that's the only ones I use personally, but I may add others later.
+This kernel is compiled only with the i915 and qemu-guest-agent system extensions because that's the only ones I use personally, but I may add others under other installer names later on.
 
 # Proxmox SR-IOV Module
 Support for SR-IOV is required on both host and guest. On Proxmox hosts it can be added using the [strongtz/i915-sriov-dkms](https://github.com/strongtz/i915-sriov-dkms) DKMS module.  
