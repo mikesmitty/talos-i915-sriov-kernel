@@ -38,7 +38,7 @@
                 "/\\.ya?ml$/"
             ],
             "matchStrings": [
-                "# renovate: datasource=(?<datasource>[a-z-.]+?) depName=(?<depName>[^\\s]+)(?: versioning=(?<versioning>[^\\s]+?))?(?: extractVersion=(?<extractVersion>[^\\s]+?))?\\s+-\\s*image:\\s*[^\\s]+:(?<currentValue>[^\\s]+)"
+                "# renovate: datasource=(?<datasource>[a-z-.]+?) depName=(?<depName>[^\\s]+)(?: versioning=(?<versioning>[^\\s]+?))?(?: extractVersion=(?<extractVersion>[^\\s]+?))?\\s*talos-version:\\s*(?<currentValue>[^\\s]+)"
             ]
         }
     ],
