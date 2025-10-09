@@ -5,7 +5,7 @@ Talos installer and build artifacts with the [intel/linux-intel-lts](https://git
 This is not stable software, you will very possibly encounter bugs and I offer no guarantees of any kind. Intel has a note on the kernel repo stating that "this should only be used for Intel platform feature evaluation and not for production." You may get lucky and not run into any issues, but be prepared to back out just in case. 
 
 # Known Issues
-- Plex video corruption when transcoding 10-bit HEVC to H.264, resolved by switching on `Enable HEVC video Encoding (experimental)` in Plex
+- Plex video corruption when transcoding 10-bit HEVC to H.264 (HDR->SDR tone-mapping), resolved by using the Xe driver instead of i915. Related: [strongtz/i915-sriov-dkms#57](https://github.com/strongtz/i915-sriov-dkms/issues/57)
 
 # Installation
 
