@@ -12,7 +12,7 @@ This is not stable software, you will very possibly encounter bugs and I offer n
 ## Install image
 Use this installer image (`ghcr.io/mikesmitty/installer`) like so:
 ```
-talosctl upgrade --image ghcr.io/mikesmitty/test-i915-installer:$TALOS_VERSION -n $YOUR_NODE
+talosctl upgrade --image ghcr.io/mikesmitty/installer:$TALOS_VERSION -n $YOUR_NODE
 ```
 
 ## Alternate install media
