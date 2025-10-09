@@ -26,7 +26,8 @@ jobs:
       packages: write
       pull-requests: read
 
-    runs-on: runner-large
+    #runs-on: runner-large
+    runs-on: ubuntu-latest
 
     defaults:
       run:
