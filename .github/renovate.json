@@ -30,6 +30,16 @@
             "matchStrings": [
                 "ghcr.io\\/siderolabs\\/bldr:(?<currentValue>v.*)"
             ]
+        },
+        {
+            "customType": "regex",
+            "versioningTemplate": "{{#if versioning}}{{versioning}}{{else}}semver{{/if}}",
+            "managerFilePatterns": [
+                "/\\.ya?ml$/"
+            ],
+            "matchStrings": [
+                "# renovate: datasource=(?<datasource>[a-z-.]+?) depName=(?<depName>[^\\s]+)(?: versioning=(?<versioning>[^\\s]+?))?(?: extractVersion=(?<extractVersion>[^\\s]+?))?\\s+-\\s*image:\\s*[^\\s]+:(?<currentValue>[^\\s]+)"
+            ]
         }
     ],
     "packageRules": [
@@ -53,6 +63,12 @@
             "enabled": false,
             "matchFileNames": [
                 ".github/workflows/*.yaml"
+            ]
+        },
+        {
+            "versioning": "regex:^(?<major>\\d{4})(?<minor>\\d{2})(?<patch>\\d{2})\\.?(?<build>\\d+)?$",
+            "matchPackageNames": [
+                "git://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git"
             ]
         }
     ],

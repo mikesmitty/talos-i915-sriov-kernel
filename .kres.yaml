@@ -24,3 +24,17 @@ kind: common.Build
 spec:
   ignoredPaths:
     - go.work.sum
+---
+kind: common.Renovate
+spec:
+  packageRules:
+    - matchPackageNames:
+        - git://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git
+      versioning: 'regex:^(?<major>\d{4})(?<minor>\d{2})(?<patch>\d{2})\.?(?<build>\d+)?$'
+  customManagers:
+    - customType: regex
+      managerFilePatterns:
+        - '\.ya?ml$'
+      matchStrings:
+        - '# renovate: datasource=(?<datasource>[a-z-.]+?) depName=(?<depName>[^\s]+)(?: versioning=(?<versioning>[^\s]+?))?(?: extractVersion=(?<extractVersion>[^\s]+?))?\s+-\s*image:\s*[^\s]+:(?<currentValue>[^\s]+)'
+      versioningTemplate: "{{#if versioning}}{{versioning}}{{else}}semver{{/if}}"
