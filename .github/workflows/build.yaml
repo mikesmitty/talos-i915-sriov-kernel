@@ -76,7 +76,7 @@ jobs:
 
       - name: Build kernel
         run: |
-          make kernel USERNAME=${{ github.repository_owner }} TAG=$KERNEL_IMAGE_TAG PLATFORM=linux/amd64 PUSH=true
+          make kernel linux-firmware USERNAME=${{ github.repository_owner }} TAG=$KERNEL_IMAGE_TAG PLATFORM=linux/amd64 PUSH=true
 
           KERNEL_IMAGE="ghcr.io/${{ github.repository_owner }}/kernel:${KERNEL_IMAGE_TAG}"
           echo "KERNEL_IMAGE=$KERNEL_IMAGE" >> $GITHUB_ENV
@@ -149,7 +149,7 @@ jobs:
       - name: Build extensions
         working-directory: talos
         run: |
-          make i915 qemu-guest-agent -C _out/extensions \
+          make binfmt-misc i915 qemu-guest-agent -C _out/extensions \
             PKGS_PREFIX=ghcr.io/${{ github.repository_owner }} \
             PKGS=${KERNEL_IMAGE_TAG} \
             USERNAME=${{ github.repository_owner }} \
@@ -157,16 +157,18 @@ jobs:
             PUSH=true \
             TAG=${{ steps.get-release.outputs.release }}
 
-      # - name: Build extensions image
-      #   working-directory: talos
-      #   run: |
-      #     make extensions -C _out/extensions \
-      #       PKGS_PREFIX=ghcr.io/${{ github.repository_owner }} \
-      #       PKGS=${KERNEL_IMAGE_TAG} \
-      #       USERNAME=${{ github.repository_owner }} \
-      #       PLATFORM=linux/amd64 \
-      #       PUSH=true \
-      #       TAG=${{ steps.get-release.outputs.release }}
+      - name: Build extensions image
+        working-directory: talos
+        run: |
+          make extensions -C _out/extensions \
+            TARGETS="binfmt-misc i915 qemu-guest-agent xe" \
+            NONFREE_TARGETS="" \
+            PKGS_PREFIX=ghcr.io/${{ github.repository_owner }} \
+            PKGS=${KERNEL_IMAGE_TAG} \
+            USERNAME=${{ github.repository_owner }} \
+            PLATFORM=linux/amd64 \
+            PUSH=true \
+            TAG=${{ steps.get-release.outputs.release }}
 
       - name: Build installer
         working-directory: talos
@@ -178,14 +180,9 @@ jobs:
 
           IMAGER_ARGS="--base-installer-image=${BASE_INSTALLER_IMAGE} --extra-kernel-arg='i915.force_probe=*'"
 
-          # EXTENSIONS_FILTER="grep -E 'i915|qemu-guest-agent'"
-          # for image in $(crane export $EXTENSIONS_IMAGE_REF | tar x --to-stdout image-digests | $EXTENSIONS_FILTER) ${EXTENSIONS_IMAGE_REF}@$(crane digest $EXTENSIONS_IMAGE_REF); do
-          #   IMAGER_ARGS="${IMAGER_ARGS} --system-extension-image=$image"
-          # done
-
-          # FIXME: Temporarily hardcoding the extensions because the extensions container isn't being created properly
-          IMAGER_ARGS="${IMAGER_ARGS} --system-extension-image=ghcr.io/${{ github.repository_owner }}/i915:20250917-v1.11.2"
-          IMAGER_ARGS="${IMAGER_ARGS} --system-extension-image=ghcr.io/${{ github.repository_owner }}/qemu-guest-agent:10.0.2"
+          for image in $(crane export $EXTENSIONS_IMAGE_REF | tar x --to-stdout image-digests) ${EXTENSIONS_IMAGE_REF}@$(crane digest $EXTENSIONS_IMAGE_REF); do
+            IMAGER_ARGS="${IMAGER_ARGS} --system-extension-image=$image"
+          done
 
           make installer \
             USERNAME=${{ github.repository_owner }} \
