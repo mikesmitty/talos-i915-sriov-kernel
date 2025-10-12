@@ -42,7 +42,7 @@ jobs:
       - name: Get release
         id: get-release
         run: |
-          which gh || sudo apt-get update && sudo apt-get install -y gh
+          which gh make || sudo apt-get update && sudo apt-get install -y gh make
           RELEASE=$(yq '.talos-version' talos-version.yaml)
           if [ -n "${{ inputs.version }}" ]; then
             RELEASE="${{ inputs.version }}"
