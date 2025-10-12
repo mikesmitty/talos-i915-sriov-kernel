@@ -185,7 +185,7 @@ jobs:
 
           IMAGER_ARGS="--base-installer-image=${BASE_INSTALLER_IMAGE} --extra-kernel-arg='i915.force_probe=*'"
 
-          for image in $(crane export $EXTENSIONS_IMAGE_REF | tar x --to-stdout image-digests) ${EXTENSIONS_IMAGE_REF}@$(crane digest $EXTENSIONS_IMAGE_REF); do
+          for image in $(crane export $EXTENSIONS_IMAGE_REF | tar x --to-stdout image-digests); do
             IMAGER_ARGS="${IMAGER_ARGS} --system-extension-image=$image"
           done
 
