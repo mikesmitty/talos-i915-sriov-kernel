@@ -69,13 +69,19 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+        with:
+          append: |
+            - endpoint: tcp://buildkit-arm64.ci.svc.cluster.local:1234
+              platforms: linux/arm64
+          driver: remote
+          endpoint: tcp://buildkit-amd64.ci.svc.cluster.local:1234
 
       - name: Set up crane
         uses: imjasonh/setup-crane@v0.4
 
       - name: Build kernel
         run: |
-          make kernel linux-firmware USERNAME=${{ github.repository_owner }} TAG=$KERNEL_IMAGE_TAG PLATFORM=linux/amd64 PUSH=true
+          make kernel USERNAME=${{ github.repository_owner }} TAG=$KERNEL_IMAGE_TAG PLATFORM=linux/amd64 PUSH=true
 
           KERNEL_IMAGE="ghcr.io/${{ github.repository_owner }}/kernel:${KERNEL_IMAGE_TAG}"
           echo "KERNEL_IMAGE=$KERNEL_IMAGE" >> $GITHUB_ENV
