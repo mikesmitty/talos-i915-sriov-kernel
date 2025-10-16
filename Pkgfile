@@ -3,10 +3,10 @@
 format: v1alpha2
 
 vars:
-  # renovate: datasource=github-tags extractVersion=^lts-v(?<version>.*-linux-[0-9T]+Z)$ depName=intel/linux-intel-lts
-  linux_version: 6.12.48-linux-250924T142248Z
-  linux_sha256: ddf66534d4643058eb7bd910dea70c603d50323ac54781a275d6691e0d4c1cb5
-  linux_sha512: 0e446a4d61ea0f48e647badb9ad572646e6df7f715020948e3341d8a9b8abf2e417808f23678b11f69ac185f9516537004ff94d84b39d6157201a7d24989a66a
+  # renovate: datasource=git-tags extractVersion=^v(?<version>.*)$ depName=git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git
+  linux_version: 6.12.52
+  linux_sha256: b4850cf670a032c70f38b713a27d62046c5f747caf028c5f50b18f98606a9eb1
+  linux_sha512: 6bef07cd88663e6d17384254ebdf8d63594b0a9eac0dd3701966542e6abcb00564046197a64ea127ee1806b2d3d5975a44c81c5c49cd754a2cba6a1db7f0d21a
 
   # renovate: datasource=git-refs versioning=git depName=https://github.com/a13xp0p0v/kernel-hardening-checker.git
   kspp_ref: 7209f2fdef01885c05a1f55b7655ece514b23ead

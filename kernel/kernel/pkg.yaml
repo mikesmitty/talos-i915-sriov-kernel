@@ -41,9 +41,9 @@ steps:
         unlink /rootfs/usr/lib/modules/$KERNELRELEASE/build
     sbom:
       outputPath: /rootfs/usr/share/spdx/kernel.spdx.json
-      version: {{ regexReplaceAll "^(\\d+)(.\\d+)(\\.\\d+).*$" .linux_version "${1}" }}
+      version: {{ .linux_version }}
       cpes:
-        - cpe:2.3:o:linux:linux_kernel:{{ regexReplaceAll "^(\\d+\\.\\d+\\.\\d+).*$" .linux_version "${1}" }}:*:*:*:*:*:*:*
+        - cpe:2.3:o:linux:linux_kernel:{{ .linux_version }}:*:*:*:*:*:*:*
       licenses:
         - GPL-2.0-only
 finalize:

@@ -14,6 +14,10 @@ steps:
         cp -v /pkg/certs/* certs/
       - |
         cd /src
+        for patch in $(grep -vFf /pkg/patch-exclude.txt /pkg/linux-kernel-overlay/kernel-patches/patches/series); do
+          patch -p1 < /pkg/linux-kernel-overlay/kernel-patches/patches/${patch} || (echo "Failed to apply patch $patch" && exit 1)
+          echo "Applied patch $patch"
+        done
         for patch in $(find /pkg/patches -type f -name "*.patch" | sort); do
           patch -p1 < $patch || (echo "Failed to apply patch $patch" && exit 1)
           echo "Applied patch $patch"
