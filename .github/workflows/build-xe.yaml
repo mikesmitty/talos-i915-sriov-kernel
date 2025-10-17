@@ -198,7 +198,7 @@ jobs:
           BASE_INSTALLER_IMAGE="ghcr.io/${{ github.repository_owner }}/installer-base:${KERNEL_IMAGE_TAG}"
           EXTENSIONS_IMAGE_REF="ghcr.io/${{ github.repository_owner }}/extensions:${KERNEL_IMAGE_TAG}"
 
-          IMAGER_ARGS="--base-installer-image=${BASE_INSTALLER_IMAGE} --extra-kernel-arg='i915.force_probe=*'"
+          IMAGER_ARGS="--base-installer-image=${BASE_INSTALLER_IMAGE} --extra-kernel-arg='xe.force_probe=*' --extra-kernel-arg='i915.force_probe=!*'"
 
           for image in $(crane export $EXTENSIONS_IMAGE_REF | tar x --to-stdout image-digests); do
             IMAGER_ARGS="${IMAGER_ARGS} --system-extension-image=$image"
