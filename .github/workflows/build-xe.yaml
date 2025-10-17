@@ -50,6 +50,7 @@ jobs:
             RELEASE="${{ inputs.version }}"
           fi
           echo "release=${RELEASE}-drm-xe-next" >> $GITHUB_OUTPUT
+          echo "original-release=${RELEASE}" >> $GITHUB_OUTPUT
 
           RELEASE_BRANCH="release-$(echo $RELEASE | grep -oP '(?<=v)[0-9]\.[0-9]+')"
           echo "release-branch=$RELEASE_BRANCH" >> $GITHUB_OUTPUT
@@ -92,7 +93,7 @@ jobs:
         uses: actions/checkout@v5
         with:
           repository: siderolabs/talos
-          ref: ${{ steps.get-release.outputs.release }}
+          ref: ${{ steps.get-release.outputs.original-release }}
           path: talos
 
       - name: Checkout pkgs
