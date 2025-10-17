@@ -170,6 +170,7 @@ jobs:
         working-directory: talos
         run: |
           make binfmt-misc i915 qemu-guest-agent xe -C _out/extensions \
+            TARGETS="binfmt-misc i915 qemu-guest-agent xe" \
             PKGS_PREFIX=ghcr.io/${{ github.repository_owner }} \
             PKGS=${KERNEL_IMAGE_TAG} \
             USERNAME=${{ github.repository_owner }} \
