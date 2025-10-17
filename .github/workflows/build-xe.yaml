@@ -127,6 +127,8 @@ jobs:
         run: |
           mkdir -p _out
 
+          cp hack/xe-modules-amd64.txt talos/hack/modules-amd64.txt
+
           make installer-base \
             USERNAME=${{ github.repository_owner }} \
             TAG=$KERNEL_IMAGE_TAG \
@@ -155,6 +157,10 @@ jobs:
         working-directory: talos
         run: |
           git -C _out/extensions fetch --prune --unshallow
+
+      - name: Copy xe extension
+        run: |
+          cp -a hack/extensions/xe talos/_out/extensions/drm/
 
       - name: Build extensions
         working-directory: talos
