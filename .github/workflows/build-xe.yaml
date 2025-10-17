@@ -127,7 +127,7 @@ jobs:
         run: |
           mkdir -p _out
 
-          cp hack/xe-modules-amd64.txt talos/hack/modules-amd64.txt
+          cp ../hack/xe-modules-amd64.txt hack/modules-amd64.txt
 
           make installer-base \
             USERNAME=${{ github.repository_owner }} \
