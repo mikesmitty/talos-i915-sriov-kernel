@@ -86,7 +86,7 @@ jobs:
         run: |
           make kernel-xe USERNAME=${{ github.repository_owner }} TAG=$KERNEL_IMAGE_TAG PLATFORM=linux/amd64 PUSH=true
 
-          KERNEL_IMAGE="ghcr.io/${{ github.repository_owner }}/kernel:${KERNEL_IMAGE_TAG}"
+          KERNEL_IMAGE="ghcr.io/${{ github.repository_owner }}/kernel-xe:${KERNEL_IMAGE_TAG}"
           echo "KERNEL_IMAGE=$KERNEL_IMAGE" >> $GITHUB_ENV
 
       - name: Checkout talos
