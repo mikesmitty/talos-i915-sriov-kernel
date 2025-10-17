@@ -3,6 +3,7 @@ kind: pkgfile.Build
 spec:
   targets:
     - kernel
+    - kernel-xe
   extraBuildArgs:
     - TAG
     - PKGS_PREFIX

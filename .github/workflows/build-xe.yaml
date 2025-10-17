@@ -1,0 +1,201 @@
+concurrency:
+  group: ${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - talos-version.yaml
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Talos version to build against (e.g. v1.11.0). If empty, uses latest release."
+        type: string
+        required: false
+        default: ""
+
+name: default-xe
+jobs:
+  default:
+    permissions:
+      actions: read
+      contents: write
+      issues: read
+      packages: write
+      pull-requests: read
+
+    runs-on: runner-large
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          submodules: true
+
+      - name: Set up yq
+        uses: frenck/action-setup-yq@v1
+
+      - name: Get release
+        id: get-release
+        run: |
+          which gh make || sudo apt-get update && sudo apt-get install -y gh make
+          RELEASE=$(yq '.talos-version' talos-version.yaml)
+          if [ -n "${{ inputs.version }}" ]; then
+            RELEASE="${{ inputs.version }}"
+          fi
+          echo "release=${RELEASE}-drm-xe-next" >> $GITHUB_OUTPUT
+
+          RELEASE_BRANCH="release-$(echo $RELEASE | grep -oP '(?<=v)[0-9]\.[0-9]+')"
+          echo "release-branch=$RELEASE_BRANCH" >> $GITHUB_OUTPUT
+
+          KERNEL_IMAGE_TAG="${RELEASE}-${GITHUB_SHA::8}-drm-xe-next"
+          echo "KERNEL_IMAGE_TAG=$KERNEL_IMAGE_TAG" >> $GITHUB_ENV
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Login to registry
+        uses: docker/login-action@v3
+        with:
+          password: ${{ github.token }}
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          append: |
+            - endpoint: tcp://buildkit-arm64.ci.svc.cluster.local:1234
+              platforms: linux/arm64
+          driver: remote
+          endpoint: tcp://buildkit-amd64.ci.svc.cluster.local:1234
+
+      - name: Set up crane
+        uses: imjasonh/setup-crane@v0.4
+
+      - name: Build kernel
+        run: |
+          make kernel-xe USERNAME=${{ github.repository_owner }} TAG=$KERNEL_IMAGE_TAG PLATFORM=linux/amd64 PUSH=true
+
+          KERNEL_IMAGE="ghcr.io/${{ github.repository_owner }}/kernel:${KERNEL_IMAGE_TAG}"
+          echo "KERNEL_IMAGE=$KERNEL_IMAGE" >> $GITHUB_ENV
+
+      - name: Checkout talos
+        uses: actions/checkout@v5
+        with:
+          repository: siderolabs/talos
+          ref: ${{ steps.get-release.outputs.release }}
+          path: talos
+
+      - name: Checkout pkgs
+        uses: actions/checkout@v5
+        with:
+          repository: siderolabs/pkgs
+          ref: ${{ steps.get-release.outputs.release-branch }}
+          path: pkgs
+
+      - name: Unshallow pkgs
+        working-directory: pkgs
+        run: |
+          git fetch --prune --unshallow
+
+      - name: Get pkgs Commit
+        run: |
+          SHORT_HASH=$(sed -r 's/v[0-9]\.[0-9]+\.[0-9]+-[0-9]+-g([a-f0-9]{6})/\1/' talos/pkg/machinery/gendata/data/pkgs)
+          git -C pkgs checkout $SHORT_HASH
+
+      - name: Build pkgs
+        working-directory: pkgs
+        run: |
+          make linux-firmware \
+            USERNAME=${{ github.repository_owner }} \
+            TAG=$KERNEL_IMAGE_TAG \
+            PLATFORM=linux/amd64 \
+            PUSH=true
+
+      - name: Build installer-base
+        working-directory: talos
+        run: |
+          mkdir -p _out
+
+          make installer-base \
+            USERNAME=${{ github.repository_owner }} \
+            TAG=$KERNEL_IMAGE_TAG \
+            PLATFORM=linux/amd64 \
+            PKG_KERNEL=$KERNEL_IMAGE \
+            PUSH=true
+
+      - name: Build imager
+        working-directory: talos
+        run: |
+          make imager INSTALLER_ARCH=amd64 \
+            USERNAME=${{ github.repository_owner }} \
+            TAG=$KERNEL_IMAGE_TAG \
+            PLATFORM=linux/amd64 \
+            PKG_KERNEL=$KERNEL_IMAGE \
+            PUSH=true
+
+      - name: Checkout extensions
+        uses: actions/checkout@v5
+        with:
+          path: talos/_out/extensions
+          ref: ${{ steps.get-release.outputs.release-branch }}
+          repository: siderolabs/extensions
+
+      - name: Unshallow extensions
+        working-directory: talos
+        run: |
+          git -C _out/extensions fetch --prune --unshallow
+
+      - name: Build extensions
+        working-directory: talos
+        run: |
+          make binfmt-misc i915 qemu-guest-agent xe -C _out/extensions \
+            PKGS_PREFIX=ghcr.io/${{ github.repository_owner }} \
+            PKGS=${KERNEL_IMAGE_TAG} \
+            USERNAME=${{ github.repository_owner }} \
+            PLATFORM=linux/amd64 \
+            PUSH=true \
+            TAG=${{ steps.get-release.outputs.release }}
+
+      - name: Build extensions image
+        working-directory: talos
+        run: |
+          make extensions -C _out/extensions \
+            TARGETS="binfmt-misc i915 qemu-guest-agent xe" \
+            NONFREE_TARGETS="" \
+            PKGS_PREFIX=ghcr.io/${{ github.repository_owner }} \
+            PKGS=${KERNEL_IMAGE_TAG} \
+            USERNAME=${{ github.repository_owner }} \
+            PLATFORM=linux/amd64 \
+            PUSH=true \
+            TAG=${{ steps.get-release.outputs.release }}
+
+      - name: Build installer
+        working-directory: talos
+        env:
+          USERNAME: ${{ github.repository_owner }}
+        run: |
+          BASE_INSTALLER_IMAGE="ghcr.io/${{ github.repository_owner }}/installer-base:${{ steps.get-release.outputs.release }}"
+          EXTENSIONS_IMAGE_REF="ghcr.io/${{ github.repository_owner }}/extensions:${{ steps.get-release.outputs.release }}"
+
+          IMAGER_ARGS="--base-installer-image=${BASE_INSTALLER_IMAGE} --extra-kernel-arg='i915.force_probe=*'"
+
+          for image in $(crane export $EXTENSIONS_IMAGE_REF | tar x --to-stdout image-digests); do
+            IMAGER_ARGS="${IMAGER_ARGS} --system-extension-image=$image"
+          done
+
+          make installer \
+            USERNAME=${{ github.repository_owner }} \
+            PLATFORM=linux/amd64 \
+            PUSH=true \
+            TAG=${{ steps.get-release.outputs.release }} \
+            IMAGER_ARGS="${IMAGER_ARGS}"

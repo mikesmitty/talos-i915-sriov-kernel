@@ -1,6 +1,6 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED, PLEASE DO NOT EDIT.
 #
-# Generated on 2025-10-06T12:47:47Z by kres bc281a9.
+# Generated on 2025-10-16T04:26:02Z by kres 7a9d88c.
 
 # common variables
 
@@ -58,6 +58,7 @@ TOOLS ?= v1.11.0
 # targets defines all the available targets
 
 TARGETS = kernel
+TARGETS += kernel-xe
 
 # help menu
 

@@ -8,10 +8,16 @@ vars:
   linux_sha256: b4850cf670a032c70f38b713a27d62046c5f747caf028c5f50b18f98606a9eb1
   linux_sha512: 6bef07cd88663e6d17384254ebdf8d63594b0a9eac0dd3701966542e6abcb00564046197a64ea127ee1806b2d3d5975a44c81c5c49cd754a2cba6a1db7f0d21a
 
+  # drm-xe-next commit as of 2025-10-16
+  linux_xe_commit: 95af8155746cbbc9e97ceb16a4977c095da1eb40
+  linux_xe_version: 6.18.0-rc1
+  linux_xe_sha256: 815438c223368af6ead8396b3aaf02b487d56194258a090415267b2660e955f3
+  linux_xe_sha512: d7825dacf26caa525ff118cdb5d269f0197ae7b6362c5af9e3e902624d615742e5d374a9296d8731ac487ba2c645797c9be77071c09f8cacba87debd2161deb2
+
   # renovate: datasource=git-refs versioning=git depName=https://github.com/a13xp0p0v/kernel-hardening-checker.git
   kspp_ref: 7209f2fdef01885c05a1f55b7655ece514b23ead
-  kspp_sha256: 0f731380ede2aaf70da5e4ba6be7f55c3442d25e94caa9e7a8666a04b306ff15
-  kspp_sha512: ef115e8b41526b4a248dab97daaeec85561525e4abf046799154242dcb2ebe6b37203fe0491e01b301f1948faa5b102f85c732ee503e0b999e7d4d162998fc70
+  kspp_sha256: afb5a10abc0c9586b6d24e62ff1f36904fcc0be26a26e1363175b3c51b9d17eb
+  kspp_sha512: 8f1b6169ea2a5cf412ad5ab8a28beb144cf2e6a7b8fa19579670305d0f8d1196de79504036dd5e5e4c22cc9232e8d7729c616688408bcbaaad690ccd22458aa0
 
 labels:
   org.opencontainers.image.source: https://github.com/mikesmitty/talos-i915-sriov-kernel
