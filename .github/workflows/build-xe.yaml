@@ -162,6 +162,10 @@ jobs:
         run: |
           cp -a hack/extensions/xe talos/_out/extensions/drm/
 
+      - name: Update extension kernel package references
+        run: |
+          find talos/_out/extensions/ -type f -exec sed -i 's|/kernel:|/kernel-xe:|g' {} \;
+
       - name: Build extensions
         working-directory: talos
         run: |
