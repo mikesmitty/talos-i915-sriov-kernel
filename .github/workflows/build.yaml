@@ -153,9 +153,11 @@ jobs:
         run: |
           git -C _out/extensions fetch --prune --unshallow
 
-      - name: Copy xe extension
+      - name: Create xe extension
+        working-directory: talos/_out/extensions
         run: |
-          cp -a hack/extensions/xe talos/_out/extensions/drm/
+          cp -a drm/i915 drm/xe
+          find drm/xe -type f -exec sed -i 's/i915/xe/g' {} +
 
       - name: Build extensions
         working-directory: talos
