@@ -1,6 +1,6 @@
-From 1bbd54f30e1f46f5569e8b24353c0f346d803f8f Mon Sep 17 00:00:00 2001
+From 6a2a72ffab5fd2710b61fbc9c889b700fcac5413 Mon Sep 17 00:00:00 2001
 From: Michael Smith <mikejsmitty@gmail.com>
-Date: Wed, 15 Oct 2025 12:56:26 +0000
+Date: Thu, 30 Oct 2025 02:21:16 +0000
 Subject: [PATCH] drm/xe/sriov: Enable SR-IOV for Meteor/Arrow/Lunar Lake
 
 ---
@@ -8,10 +8,10 @@ Subject: [PATCH] drm/xe/sriov: Enable SR-IOV for Meteor/Arrow/Lunar Lake
  1 file changed, 2 insertions(+)
 
 diff --git a/drivers/gpu/drm/xe/xe_pci.c b/drivers/gpu/drm/xe/xe_pci.c
-index 0f1a06b62..eaa5c2602 100644
+index 6e59642e7820..0f2a65934f52 100644
 --- a/drivers/gpu/drm/xe/xe_pci.c
 +++ b/drivers/gpu/drm/xe/xe_pci.c
-@@ -319,6 +319,7 @@ static const struct xe_device_desc mtl_desc = {
+@@ -331,6 +331,7 @@ static const struct xe_device_desc mtl_desc = {
  	.dma_mask_size = 46,
  	.has_display = true,
  	.has_pxp = true,
@@ -19,14 +19,14 @@ index 0f1a06b62..eaa5c2602 100644
  	.max_gt_per_tile = 2,
  	.va_bits = 48,
  	.vm_max_level = 4,
-@@ -330,6 +331,7 @@ static const struct xe_device_desc lnl_desc = {
+@@ -342,6 +343,7 @@ static const struct xe_device_desc lnl_desc = {
  	.has_display = true,
  	.has_flat_ccs = 1,
  	.has_pxp = true,
 +	.has_sriov = true,
+ 	.has_mem_copy_instr = true,
  	.max_gt_per_tile = 2,
  	.needs_scratch = true,
- 	.va_bits = 48,
 -- 
 2.43.0
 
