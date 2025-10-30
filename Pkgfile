@@ -8,11 +8,11 @@ vars:
   linux_sha256: b4850cf670a032c70f38b713a27d62046c5f747caf028c5f50b18f98606a9eb1
   linux_sha512: 6bef07cd88663e6d17384254ebdf8d63594b0a9eac0dd3701966542e6abcb00564046197a64ea127ee1806b2d3d5975a44c81c5c49cd754a2cba6a1db7f0d21a
 
-  # drm-xe-next commit as of 2025-10-17
-  linux_xe_commit: ee74634683e4b3e526a4b014b0358796e97c7ce3
-  linux_xe_version: 6.18.0-rc1
-  linux_xe_sha256: 815438c223368af6ead8396b3aaf02b487d56194258a090415267b2660e955f3
-  linux_xe_sha512: d7825dacf26caa525ff118cdb5d269f0197ae7b6362c5af9e3e902624d615742e5d374a9296d8731ac487ba2c645797c9be77071c09f8cacba87debd2161deb2
+  # drm-xe-next commit as of 2025-10-29
+  linux_xe_commit: d24f7d1f62e2ed1bce9664566c32ea13677958f4
+  linux_xe_version: 6.18.0-rc3
+  linux_xe_sha256: f19dfe6151222187910193744b889440229bdd2d62bf095fd5242082ebd40f0f
+  linux_xe_sha512: 5eade74320d7bec7c6bc7d9744d89a87a265f6e78518fa8ff4be4e88ad093c7124949e4cc0feb4df076a8711d06b6ddf4b028c1a9beb6ce403b418c2878d9dce
 
   # renovate: datasource=git-refs versioning=git depName=https://github.com/a13xp0p0v/kernel-hardening-checker.git
   kspp_ref: 7209f2fdef01885c05a1f55b7655ece514b23ead
