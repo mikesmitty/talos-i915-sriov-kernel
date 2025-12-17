@@ -70,6 +70,12 @@
             "matchPackageNames": [
                 "git://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git"
             ]
+        },
+        {
+            "matchPackageNames": [
+                "siderolabs/talos"
+            ],
+            "groupName": "talos"
         }
     ],
     "separateMajorMinor": false
